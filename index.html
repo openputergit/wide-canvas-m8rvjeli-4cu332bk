@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberpunk Docking Protocol Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --neon-blue: #0ff;
+            --neon-pink: #ff2d8d;
+            --neon-purple: #9d00ff;
+            --neon-green: #39ff14;
+        }
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: #0a0a0f;
+            color: #fff;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(17, 8, 53, 0.7) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(78, 5, 48, 0.5) 0%, transparent 33%);
+        }
+        .cyberpunk-border {
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+            position: relative;
+        }
+        .cyberpunk-border::before {
+            content: "";
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            z-index: -1;
+            background: linear-gradient(45deg, transparent 30%, var(--neon-blue), transparent 70%);
+            opacity: 0.3;
+            border-radius: inherit;
+        }
+        .cyberpunk-input {
+            background: rgba(0,0,0,0.7);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            transition: all 0.3s ease;
+        }
+        .cyberpunk-input:focus {
+            box-shadow: 0 0 15px var(--neon-blue);
+            outline: none;
+        }
+        .cyberpunk-button {
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-pink));
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .cyberpunk-button:hover {
+            box-shadow: 0 0 20px var(--neon-blue);
+            transform: scale(1.05);
+        }
+        .cyberpunk-button:after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(45deg);
+            animation: cyberpunk-button-shine 3s infinite;
+        }
+        @keyframes cyberpunk-button-shine {
+            0% {
+                left: -50%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+        .step-number {
+            color: var(--neon-pink);
+            text-shadow: 0 0 5px var(--neon-pink);
+        }
+        .glitch-effect {
+            position: relative;
+            animation: glitch 2s infinite;
+        }
+        @keyframes glitch {
+            0% {
+                text-shadow: 0.05em 0 0 var(--neon-pink), -0.05em -0.025em 0 var(--neon-blue);
+            }
+            14% {
+                text-shadow: 0.05em 0 0 var(--neon-pink), -0.05em -0.025em 0 var(--neon-blue);
+            }
+            15% {
+                text-shadow: -0.05em -0.025em 0 var(--neon-pink), 0.025em 0.025em 0 var(--neon-blue);
+            }
+            49% {
+                text-shadow: -0.05em -0.025em 0 var(--neon-pink), 0.025em 0.025em 0 var(--neon-blue);
+            }
+            50% {
+                text-shadow: 0.025em 0.05em 0 var(--neon-pink), 0.05em 0 0 var(--neon-blue);
+            }
+            99% {
+                text-shadow: 0.025em 0.05em 0 var(--neon-pink), 0.05em 0 0 var(--neon-blue);
+            }
+            100% {
+                text-shadow: -0.025em 0 0 var(--neon-pink), -0.025em -0.025em 0 var(--neon-blue);
+            }
+        }
+        .file-upload-btn {
+            border: 1px dashed var(--neon-blue);
+            background: rgba(0, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .file-upload-btn:hover {
+            background: rgba(0, 255, 255, 0.1);
+            box-shadow: inset 0 0 10px var(--neon-blue);
+        }
+        .grid-line {
+            background-image: linear-gradient(transparent 95%, var(--neon-blue) 95%),
+                              linear-gradient(90deg, transparent 95%, var(--neon-blue) 95%);
+            background-size: 20px 20px;
+            opacity: 0.1;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .tab {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+        .tab.active:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--neon-blue);
+            box-shadow: 0 0 5px var(--neon-blue);
+        }
+        .alphafold-badge {
+            background: linear-gradient(45deg, var(--neon-purple), var(--neon-pink));
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            vertical-align: middle;
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            background-color: rgba(0,0,0,0.9);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            width: 200px;
+            border: 1px solid var(--neon-blue);
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px var(--neon-blue); }
+            50% { box-shadow: 0 0 15px var(--neon-blue); }
+        }
+        .pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+        .download-item {
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+        .download-item:hover {
+            border-color: var(--neon-blue);
+            background: rgba(0, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <div class="grid-line"></div>
+    
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex items-center gap-4 cyberpunk-border p-4 rounded-lg">
+                <button class="text-2xl text-gray-400 hover:text-white">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+                <h1 class="text-2xl md:text-3xl font-bold text-white glitch-effect">Molecular Docking Protocol</h1>
+                <div class="ml-auto flex gap-4">
+                    <button class="text-2xl text-gray-400 hover:text-white">
+                        <i class="bi bi-link-45deg"></i>
+                    </button>
+                    <button class="text-2xl text-gray-400 hover:text-white">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="flex gap-8 mt-6 border-b border-gray-700 pb-2 overflow-x-auto">
+                <button class="tab active px-2 pb-2 font-semibold whitespace-nowrap">Ligand Docking</button>
+                <button class="tab px-2 pb-2 text-gray-400 font-semibold whitespace-nowrap">Protein Preparation</button>
+                <button class="tab px-2 pb-2 text-gray-400 font-semibold whitespace-nowrap">Results Analysis</button>
+                <button class="tab px-2 pb-2 text-gray-400 font-semibold whitespace-nowrap">Downloads</button>
+            </div>
+            
+            <p class="mt-4 text-gray-400">
+                This protocol allows docking of ligands with protein targets. It processes PDB files, extracts ligand information, prepares targets, and performs molecular docking simulations. Results are optimized for visualization and analysis.
+            </p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="space-y-8">
+            <!-- Step 1: File Upload Section -->
+            <section class="cyberpunk-border p-6 rounded-lg">
+                <h2 class="flex items-center gap-2 text-xl mb-6">
+                    <span class="step-number">Step 1:</span>
+                    Upload Files
+                </h2>
+                
+                <div class="space-y-6">
+                    <!-- Target Structure -->
+                    <div>
+                        <h3 class="text-lg mb-3 text-white flex items-center">
+                            Target Structure
+                            <div class="tooltip ml-2">
+                                <i class="bi bi-info-circle text-gray-400"></i>
+                                <span class="tooltiptext">Support for standard PDB, PDBqt formats and AlphaFold predicted structures</span>
+                            </div>
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-400 mb-2">Protein PDB/PDBqt File</label>
+                                <div class="flex gap-2">
+                                    <input type="text" placeholder="Select PDB file..." class="cyberpunk-input w-full p-2 rounded" id="protein-file-name" readonly>
+                                    <label for="protein-file-upload" class="p-2 text-gray-400 hover:text-white cursor-pointer">
+                                        <i class="bi bi-paperclip"></i>
+                                    </label>
+                                    <input type="file" id="protein-file-upload" accept=".pdb,.pdbqt,.cif,.pad" class="hidden" onchange="updateFileName(this, 'protein-file-name')">
+                                </div>
+                                <p class="text-sm text-gray-500 mt-1">Upload protein structure file (PDB, PDBqt, PAD, or mmCIF format)</p>
+                            </div>
+                            
+                            <div class="file-upload-container">
+                                <label class="block text-gray-400 mb-2">Or Drag & Drop Files</label>
+                                <div class="file-upload-btn h-[66px] rounded flex items-center justify-center cursor-pointer">
+                                    <span class="text-gray-400"><i class="bi bi-cloud-upload mr-2"></i> Drag files here</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AlphaFold Integration -->
+                    <div>
+                        <h3 class="text-lg mb-3 text-white flex items-center">
+                            <span>AlphaFold Integration</span> 
+                            <span class="alphafold-badge ml-2">NEW</span>
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-400 mb-2">Import From AlphaFold DB</label>
+                                <div class="flex gap-2">
+                                    <input type="text" placeholder="Enter UniProt ID or Accession..." class="cyberpunk-input w-full p-2 rounded" id="alphafold-id">
+                                    <button class="px-4 py-2 bg-black bg-opacity-50 border border-[var(--neon-blue)] text-[var(--neon-blue)] rounded hover:bg-opacity-70" onclick="importFromAlphaFold()">
+                                        Import
+                                    </button>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-1">Enter UniProt ID to fetch structure predicted by AlphaFold</p>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="p-3 rounded bg-black bg-opacity-30 text-xs text-gray-400 w-full">
+                                    <p class="mb-1"><i class="bi bi-info-circle text-[var(--neon-blue)] mr-1"></i> AlphaFold structures provide predicted protein conformations with high accuracy</p>
+                                    <div class="flex items-center mt-2">
+                                        <div class="h-1.5 flex-grow rounded-full bg-gray-800">
+                                            <div class="h-full w-3/4 rounded-full bg-gradient-to-r from-[var(--neon-blue)] to-[var(--neon-pink)]"></div>
+                                        </div>
+                                        <span class="ml-2 text-[var(--neon-blue)]">pLDDT: 87.5</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Ligand Structure -->
+                    <div>
+                        <h3 class="text-lg mb-3 text-white">Ligand Structure</h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-400 mb-2">Ligand File</label>
+                                <div class="flex gap-2">
+                                    <input type="text" placeholder="Select ligand file..." class="cyberpunk-input w-full p-2 rounded" id="ligand-file-name" readonly>
+                                    <label for="ligand-file-upload" class="p-2 text-gray-400 hover:text-white cursor-pointer">
+                                        <i class="bi bi-paperclip"></i>
+                                    </label>
+                                    <input type="file" id="ligand-file-upload" accept=".sdf,.mol2,.pdb,.pdbqt,.pad,.lib" class="hidden" onchange="updateFileName(this, 'ligand-file-name')">
+                                </div>
+                                <p class="text-sm text-gray-500 mt-1">Upload ligand file (SDF, MOL2, PDB, PAD, LIB or PDBqt format)</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-400 mb-2">Ligand Residue Name (if in PDB)</label>
+                                <input type="text" placeholder="e.g., 50D" class="cyberpunk-input w-full p-2 rounded">
+                                <p class="text-sm text-gray-500 mt-1">Required only if ligand is contained in PDB file</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Batch Upload -->
+                    <div>
+                        <h3 class="text-lg mb-3 text-white flex items-center">
+                            <span>Batch Ligand Upload</span>
+                            <span class="alphafold-badge ml-2">NEW</span>
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-400 mb-2">Multiple Ligand Files</label>
+                                <div class="flex gap-2">
+                                    <input type="text" placeholder="No files selected..." class="cyberpunk-input w-full p-2 rounded" id="batch-ligands-name" readonly>
+                                    <label for="batch-ligands-upload" class="p-2 text-gray-400 hover:text-white cursor-pointer">
+                                        <i class="bi bi-file-earmark-plus"></i>
+                                    </label>
+                                    <input type="file" id="batch-ligands-upload" accept=".sdf,.mol2,.pdb,.pdbqt,.pad,.lib" multiple class="hidden" onchange="updateBatchFileName(this)">
+                                </div>
+                                <p class="text-sm text-gray-500 mt-1">Upload multiple ligand files for batch processing</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-400 mb-2">Or Upload Library File</label>
+                                <div class="flex gap-2">
+                                    <input type="text" placeholder="Select library file..." class="cyberpunk-input w-full p-2 rounded" id="library-file-name" readonly>
+                                    <label for="library-file-upload" class="p-2 text-gray-400 hover:text-white cursor-pointer">
+                                        <i class="bi bi-file-earmark-plus"></i>
+                                    </label>
+                                    <input type="file" id="library-file-upload" accept=".sdf,.lib,.smi" class="hidden" onchange="updateFileName(this, 'library-file-name')">
+                                </div>
+                                <p class="text-sm text-gray-500 mt-1">Upload a library file containing multiple ligands (SDF, LIB or SMILES)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 2: Preparation Settings -->
+            <section class="cyberpunk-border p-6 rounded-lg">
+                <h2 class="flex items-center gap-2 text-xl mb-4">
+                    <span class="step-number">Step 2:</span>
+                    Preparation Settings
+                </h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg mb-3 text-white">Protein Preparation</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-400 mb-2">Add Hydrogens</label>
+                                <select class="cyberpunk-input w-full p-2 rounded">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                                <p class="text-sm text-gray-500 mt-1">Add hydrogens to the protein structure</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-400 mb-2">Remove Water Molecules</label>
+                                <select class="cyberpunk-input w-full p-2 rounded">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                                <p class="text-sm text-gray-500 mt-1">Remove water molecules from the structure</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-400 mb-2">Remove Existing Ligands</label>
+                                <select class="cyberpunk-input w-full p-2 rounded">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                                <p class="text-sm text-gray-500 mt-1">Remove existing ligands from the structure</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-400 mb-2">Fix Missing Residues</label>
+                                <select class="cyberpunk-input w-full p-2 rounded">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                                <p class="text-sm text-gray-500 mt-1">Attempt to fix missing residues in the structure</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg mb-3 text-white">Docking Settings</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-400 mb-2">Binding Site Definition</label>
+                                <select id="binding-site-method" class="cyberpunk-input w-full p-2 rounded" onchange="toggleBindingSiteInputs()">
+                                    <option value="ligand">From Reference Ligand</option>
+                                    <option value="coords">From Coordinates</option>
+                                    <option value="auto">Auto-detect Pockets</option>
+                                    <option value="alphafold">Use AlphaFold Confidence</option>
+                                </select>
+                                <p class="text-sm text-gray-500 mt-1">Method to define the binding site</p>
+                            </div>
+                            
+                            <div id="coordinates-inputs" class="hidden space-y-2">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <label class="block text-gray-400 mb-2">X</label>
+                                        <input type="text" placeholder="0.0" class="cyberpunk-input w-full p-2 rounded">
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-400 mb-2">Y</label>
+                                        <input type="text" placeholder="0.0" class="cyberpunk-input w-full p-2 rounded">
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-400 mb-2">Z</label>
+                                        <input type="text" placeholder="0.0" class="cyberpunk-input w-full p-2 rounded">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-400 mb-2">Box Size (Å)</label>
+                                    <input type="text" placeholder="20" class="cyberpunk-input w-full p-2 rounded">
+                                </div>
+                            </div>
+
+                            <div id="alphafold-inputs" class="hidden space-y-2">
+                                <div>
+                                    <label class="block text-gray-400 mb-2">pLDDT Threshold</label>
+                                    <input type="range" min="50" max="100" value="70" class="w-full cyberpunk-input rounded" id="plddt-slider" 
+                                        oninput="document.getElementById('plddt-value').innerText = this.value">
+                                    <div class="flex justify-between mt-1">
+                                        <span class="text-sm text-gray-500">Low Confidence</span>
+                                        <span class="text-sm text-[var(--neon-blue)]" id="plddt-value">70</span>
+                                        <span class="text-sm text-gray-500">High Confidence</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-400 mb-2">Number of Poses</label>
+                                <input type="number" min="1" max="100" value="10" class="cyberpunk-input w-full p-2 rounded">
+                                <p class="text-sm text-gray-500 mt-1">Number of docking poses to generate</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-400 mb-2">Flexibility</label>
+                                <select class="cyberpunk-input w-full p-2 rounded">
+                                    <option value="rigid">Rigid Receptor</option>
+                                    <option value="flexible">Flexible Side Chains</option>
+                                    <option value="ensemble">Ensemble Docking</option>
+                                </select>
+                                <p class="text-sm text-gray-500 mt-1">Define receptor flexibility during docking</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 3: Output Settings -->
+            <section class="cyberpunk-border p-6 rounded-lg">
+                <h2 class="flex items-center gap-2 text-xl mb-4">
+                    <span class="step-number">Step 3:</span>
+                    Output Settings
+                </h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="mb-4">
+                            <label class="block text-gray-400 mb-2">Output Format</label>
+                            <select class="cyberpunk-input w-full p-2 rounded">
+                                <option value="pdb">PDB</option>
+                                <option value="pdbqt">PDBQT</option>
+                                <option value="mol2">MOL2</option>
+                                <option value="pad">PAD</option>
+                            </select>
+                            <p class="text-sm text-gray-500 mt-1">Format for output files</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-400 mb-2">Combine Results with Protein</label>
+                            <select class="cyberpunk-input w-full p-2 rounded">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                            <p class="text-sm text-gray-500 mt-1">Combine docking results with protein for visualization</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-400 mb-2">Download Options</label>
+                            <select class="cyberpunk-input w-full p-2 rounded" id="download-options">
+                                <option value="all">All Files (ZIP Archive)</option>
+                                <option value="best">Best Pose Only</option>
+                                <option value="report">Report Only</option>
+                                <option value="visualization">Visualization Ready Files</option>
+                            </select>
+                            <p class="text-sm text-gray-500 mt-1">Choose what to include in the download package</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="mb-4">
+                            <label class="block text-gray-400 mb-2">Generate Interaction Report</label>
+                            <select class="cyberpunk-input w-full p-2 rounded">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                            <p class="text-sm text-gray-500 mt-1">Generate detailed protein-ligand interaction report</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-400 mb-2">Scoring Function</label>
+                            <select class="cyberpunk-input w-full p-2 rounded">
+                                <option value="vina">Vina</option>
+                                <option value="vinardo">Vinardo</option>
+                                <option value="ad4">AutoDock4</option>
+                                <option value="gnina">GNINA (ML-based)</option>
+                            </select>
+                            <p class="text-sm text-gray-500 mt-1">Scoring function to evaluate docking poses</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-400 mb-2 flex items-center">
+                                <span>Export Format for Analysis Tools</span>
+                                <span class="alphafold-badge ml-2">NEW</span>
+                            </label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="export-pymol" class="mr-2 cyberpunk-input">
+                                    <label for="export-pymol" class="text-gray-400">PyMOL</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="export-vmd" class="mr-2 cyberpunk-input">
+                                    <label for="export-vmd" class="text-gray-400">VMD</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="export-chimera" class="mr-2 cyberpunk-input">
+                                    <label for="export-chimera" class="text-gray-400">UCSF Chimera</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="export-maestro" class="mr-2 cyberpunk-input">
+                                    <label for="export-maestro" class="text-gray-400">Maestro</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Downloads Section (Hidden by Default) -->
+            <section id="downloads-section" class="hidden cyberpunk-border p-6 rounded-lg">
+                <h2 class="flex items-center gap-2 text-xl mb-6">
+                    <span class="step-number"><i class="bi bi-download"></i></span>
+                    Download Results
+                </h2>
+                <p class="text-gray-400 mb-4">Your docking results are ready. Select files to download:</p>
+                
+                <div class="space-y-3 mb-6">
+                    <div class="download-item p-3 rounded flex justify-between items-center">
+                        <div>
+                            <span class="font-semibold text-white">Results_Summary.pdf</span>
+                            <p class="text-xs text-gray-500">Comprehensive report with binding energies and interactions</p>
+                        </div>
+                        <button class="text-[var(--neon-blue)] hover:text-white"><i class="bi bi-download"></i></button>
+                    </div>
+                    
+                    <div class="download-item p-3 rounded flex justify-between items-center">
+                        <div>
+                            <span class="font-semibold text-white">Best_Docking_Pose.pdb</span>
+                            <p class="text-xs text-gray-500">Highest scoring docking result (BE: -8.4 kcal/mol)</p>
+                        </div>
+                        <button class="text-[var(--neon-blue)] hover:text-white"><i class="bi bi-download"></i></button>
+                    </div>
+                    
+                    <div class="download-item p-3 rounded flex justify-between items-center">
+                        <div>
+                            <span class="font-semibold text-white">All_Docking_Results.zip</span>
+                            <p class="text-xs text-gray-500">Complete archive with all poses and analysis files</p>
+                        </div>
+                        <button class="text-[var(--neon-blue)] hover:text-white"><i class="bi bi-download"></i></button>
+                    </div>
+                    
+                    <div class="download-item p-3 rounded flex justify-between items-center">
+                        <div>
+                            <span class="font-semibold text-white">PyMOL_Session.pse</span>
+                            <p class="text-xs text-gray-500">Pre-configured PyMOL session file with visualization</p>
+                        </div>
+                        <button class="text-[var(--neon-blue)] hover:text-white"><i class="bi bi-download"></i></button>
+                    </div>
+                    
+                    <div class="download-item p-3 rounded flex justify-between items-center pulse-glow">
+                        <div>
+                            <span class="font-semibold text-white flex items-center">
+                                Complete_Analysis_Package.zip
+                                <span class="alphafold-badge ml-2">RECOMMENDED</span>
+                            </span>
+                            <p class="text-xs text-gray-500">All files with analysis scripts and visualization tools</p>
+                        </div>
+                        <button class="text-[var(--neon-green)] hover:text-white"><i class="bi bi-download"></i></button>
+                    </div>
+                </div>
+                
+                <div class="cyberpunk-border p-3 rounded bg-black bg-opacity-50 flex items-start gap-3">
+                    <i class="bi bi-info-circle text-[var(--neon-blue)] text-lg mt-0.5"></i>
+                    <div>
+                        <p class="text-gray-300 text-sm">Results will be available for download for 7 days. All data includes proper citation information and is compatible with major molecular visualization and analysis tools.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between gap-4 flex-wrap">
+                <button class="border border-gray-600 px-6 py-3 rounded-lg text-gray-400 hover:text-white hover:border-gray-400 transition-all">
+                    Save Protocol
+                </button>
+                
+                <div class="flex gap-4 flex-wrap">
+                    <button class="border border-gray-600 px-6 py-3 rounded-lg text-gray-400 hover:text-white hover:border-gray-400 transition-all" id="preview-button">
+                        Preview
+                    </button>
+                    <button class="cyberpunk-button px-8 py-3 rounded-lg text-white font-bold" id="run-button">
+                        Run Docking
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Status Bar -->
+            <div class="cyberpunk-border p-3 rounded-lg mt-6">
+                <div class="flex items-center gap-2">
+                    <div class="animate-pulse">
+                        <div class="h-3 w-3 rounded-full bg-green-400 shadow-lg shadow-green-400/50"></div>
+                    </div>
+                    <p class="text-sm text-gray-400" id="status-text">Ready to process docking protocol</p>
+                    <div class="ml-auto text-xs text-gray-500">v3.0.0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateFileName(input, displayId) {
+            if (input.files && input.files[0]) {
+                document.getElementById(displayId).value = input.files[0].name;
+                
+                // Show appropriate success notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-black bg-opacity-80 text-green-400 border border-green-400 p-4 rounded-md shadow-lg shadow-green-400/20';
+                notification.innerHTML = `<i class="bi bi-check-circle mr-2"></i> ${input.files[0].name} successfully uploaded`;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => notification.remove(), 500);
+                }, 3000);
+            }
+        }
+
+        function updateBatchFileName(input) {
+            if (input.files && input.files.length > 0) {
+                const filesCount = input.files.length;
+                document.getElementById('batch-ligands-name').value = `${filesCount} file${filesCount > 1 ? 's' : ''} selected`;
+                
+                // Show appropriate success notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-black bg-opacity-80 text-green-400 border border-green-400 p-4 rounded-md shadow-lg shadow-green-400/20';
+                notification.innerHTML = `<i class="bi bi-check-circle mr-2"></i> ${filesCount} ligand file${filesCount > 1 ? 's' : ''} successfully uploaded`;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => notification.remove(), 500);
+                }, 3000);
+            }
+        }
+        
+        function toggleBindingSiteInputs() {
+            const method = document.getElementById('binding-site-method').value;
+            const coordInputs = document.getElementById('coordinates-inputs');
+            const alphaFoldInputs = document.getElementById('alphafold-inputs');
+            
+            if (method === 'coords') {
+                coordInputs.classList.remove('hidden');
+                alphaFoldInputs.classList.add('hidden');
+            } else if (method === 'alphafold') {
+                coordInputs.classList.add('hidden');
+                alphaFoldInputs.classList.remove('hidden');
+            } else {
+                coordInputs.classList.add('hidden');
+                alphaFoldInputs.classList.add('hidden');
+            }
+        }
+
+        function importFromAlphaFold() {
+            const alphaFoldId = document.getElementById('alphafold-id').value.trim();
+            
+            if (!alphaFoldId) {
+                // Error notification 
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-black bg-opacity-80 text-red-400 border border-red-400 p-4 rounded-md shadow-lg';
+                notification.innerHTML = `<i class="bi bi-exclamation-triangle mr-2"></i> Please enter a valid UniProt ID or Accession`;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => notification.remove(), 500);
+                }, 3000);
+                
+                return;
+            }
+            
+            // Show loading state
+            const statusText = document.getElementById('status-text');
+            const originalStatus = statusText.innerHTML;
+            statusText.innerHTML = `<span class="flex items-center"><i class="bi bi-arrow-repeat animate-spin mr-2"></i> Fetching AlphaFold structure: ${alphaFoldId}...</span>`;
+            
+            // Simulate fetching
+            setTimeout(() => {
+                // Reset status
+                statusText.innerHTML = originalStatus;
+                
+                // Update protein file name
+                document.getElementById('protein-file-name').value = `${alphaFoldId}_AlphaFold.cif`;
+                
+                // Show success notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-black bg-opacity-80 text-green-400 border border-green-400 p-4 rounded-md shadow-lg shadow-green-400/20';
+                notification.innerHTML = `<i class="bi bi-check-circle mr-2"></i> AlphaFold structure for ${alphaFoldId} successfully imported`;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => notification.remove(), 500);
+                }, 3000);
+            }, 2000);
+        }
+        
+        // File drag & drop support
+        const dropArea = document.querySelector('.file-upload-btn');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('border-neon-blue');
+            dropArea.style.boxShadow = '0 0 10px var(--neon-blue)';
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('border-neon-blue');
+            dropArea.style.boxShadow = 'none';
+        }
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                // Handle the file(s)
+                const fileType = getFileExtension(files[0].name);
+                
+                if (['.pdb', '.pdbqt', '.cif', '.pad'].includes(fileType)) {
+                    document.getElementById('protein-file-name').value = files[0].name;
+                } else if (['.sdf', '.mol2', '.lib'].includes(fileType)) {
+                    document.getElementById('ligand-file-name').value = files[0].name;
+                }
+                
+                // Show notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-black bg-opacity-80 text-green-400 border border-green-400 p-4 rounded-md shadow-lg shadow-green-400/20';
+                notification.innerHTML = `<i class="bi bi-check-circle mr-2"></i> ${files[0].name} successfully uploaded`;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => notification.remove(), 500);
+                }, 3000);
+            }
+        }
+        
+        function getFileExtension(filename) {
+            return '.' + filename.split('.').pop().toLowerCase();
+        }
+        
+        // Tab Switching
+        const tabs = document.querySelectorAll('.tab');
+        const downloadsSection = document.getElementById('downloads-section');
+        
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // If Downloads tab is clicked, show downloads section
+                if (index === 3) {
+                    downloadsSection.classList.remove('hidden');
+                } else {
+                    downloadsSection.classList.add('hidden');
+                }
+            });
+        });
+        
+        // Run Docking Button Functionality
+        const runButton = document.getElementById('run-button');
+        runButton.addEventListener('click', function() {
+            // Show loading state
+            this.innerHTML = '<span class="flex items-center"><i class="bi bi-arrow-repeat animate-spin mr-2"></i> Processing...</span>';
+            this.disabled = true;
+            
+            const statusText = document.getElementById('status-text');
+            statusText.innerHTML = '<span class="text-[var(--neon-green)]">Running docking simulation...</span>';
+            
+            // Simulate processing
+            setTimeout(() => {
+                // Update status
+                statusText.innerHTML = '<span class="text-[var(--neon-green)]">Docking complete! Results ready for download.</span>';
+                
+                // Reset button
+                this.innerHTML = 'Run Docking';
+                this.disabled = false;
+                
+                // Show downloads section
+                downloadsSection.classList.remove('hidden');
+                
+                // Activate the Downloads tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tabs[3].classList.add('active');
+                
+                // Show success notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-black bg-opacity-80 text-green-400 border border-green-400 p-4 rounded-md shadow-lg shadow-green-400/20 max-w-md';
+                notification.innerHTML = `
+                    <div class="flex items-start">
+                        <i class="bi bi-check-circle text-xl mr-3 mt-1"></i>
+                        <div>
+                            <h3 class="font-bold mb-1">Docking Complete</h3>
+                            <p class="text-sm">Molecular docking protocol successfully executed. 10 poses generated with best binding energy of -8.4 kcal/mol.</p>
+                        </div>
+                    </div>`;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => notification.remove(), 500);
+                }, 5000);
+            }, 3000);
+        });
+
+        // Preview Button Functionality
+        const previewButton = document.getElementById('preview-button');
+        previewButton.addEventListener('click', function() {
+            // Show loading state
+            this.innerHTML = '<span class="flex items-center"><i class="bi bi-arrow-repeat animate-spin mr-2"></i></span>';
+            this.disabled = true;
+            
+            // Simulate processing
+            setTimeout(() => {
+                // Reset button
+                this.innerHTML = 'Preview';
+                this.disabled = false;
+                
+                // Show preview notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-90 border border-[var(--neon-blue)] p-6 rounded-md shadow-lg max-w-md z-10';
+                notification.innerHTML = `
+                    <div class="text-center">
+                        <h3 class="font-bold mb-3 text-white">Protocol Preview</h3>
+                        <p class="text-sm text-gray-300 mb-4">The current protocol is configured to dock a <span class="text-[var(--neon-pink)]">single ligand</span> against a <span class="text-[var(--neon-blue)]">protein target</span> using AutoDock Vina.</p>
+                        <div class="space-y-2 text-left mb-4">
+                            <p class="text-xs text-gray-400"><span class="text-white">Target:</span> PDB file or AlphaFold structure</p>
+                            <p class="text-xs text-gray-400"><span class="text-white">Ligand:</span> SDF, MOL2 or PDB format</p>
+                            <p class="text-xs text-gray-400"><span class="text-white">Binding site:</span> Defined by reference ligand</p>
+                            <p class="text-xs text-gray-400"><span class="text-white">Output:</span> 10 poses in PDB format with interaction report</p>
+                        </div>
+                        <button id="close-preview" class="px-4 py-2 bg-[var(--neon-blue)] text-black rounded text-sm">Close Preview</button>
+                    </div>`;
+                document.body.appendChild(notification);
+                
+                // Close button functionality
+                document.getElementById('close-preview').addEventListener('click', function() {
+                    notification.remove();
+                });
+            }, 1000);
+        });
+
+        // Download buttons functionality 
+        const downloadButtons = document.querySelectorAll('.download-item button');
+        downloadButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const fileName = this.parentElement.querySelector('.font-semibold').innerText;
+                
+                // Show loading
+                this.innerHTML = '<i class="bi bi-arrow-repeat animate-spin"></i>';
+                
+                // Simulate download
+                setTimeout(() => {
+                    // Restore button
+                    this.innerHTML = '<i class="bi bi-download"></i>';
+                    
+                    // Show notification
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed bottom-4 right-4 bg-black bg-opacity-80 text-green-400 border border-green-400 p-4 rounded-md shadow-lg shadow-green-400/20';
+                    notification.innerHTML = `<i class="bi bi-check-circle mr-2"></i> Successfully downloaded ${fileName}`;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        notification.style.transition = 'opacity 0.5s ease';
+                        setTimeout(() => notification.remove(), 500);
+                    }, 3000);
+                }, 1000);
+            });
+        });
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
